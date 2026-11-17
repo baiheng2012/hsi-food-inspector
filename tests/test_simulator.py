@@ -9,6 +9,7 @@ import numpy as np
 from hsi.data.simulator import (
     BACKGROUND,
     FOREIGN,
+    HARD_CONFIG,
     SimConfig,
     base_spectrum,
     generate_dataset,
@@ -77,3 +78,11 @@ def test_water_absorption_physics():
     low = base_spectrum(wl, 1, 0.3)[idx]
     high = base_spectrum(wl, 1, 0.9)[idx]
     assert high < low
+
+def test_hard_mode_changes_spectra_but_not_geometry():
+    # 困难模式只改光谱，不改物体的位置/类别（随机数抽取顺序没变）
+    easy = generate_scene(SimConfig(), 0)
+    hard = generate_scene(HARD_CONFIG, 0)
+    assert np.array_equal(easy.label_map, hard.label_map)
+    assert np.array_equal(easy.item_map, hard.item_map)
+    assert not np.array_equal(easy.cube, hard.cube)

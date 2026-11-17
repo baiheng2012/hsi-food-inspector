@@ -69,3 +69,5 @@ def test_transformers_keep_shape():
     _, X = _spectra()
     for t in (SNV(), MSC(), SavitzkyGolay()):
         assert t.fit_transform(X).shape == X.shape
+
+

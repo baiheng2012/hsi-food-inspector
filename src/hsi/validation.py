@@ -20,11 +20,13 @@
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import (
     GroupKFold,
     KFold,
     StratifiedGroupKFold,
     StratifiedKFold,
+    cross_val_predict,
     cross_val_score,
 )
 
@@ -95,3 +97,33 @@ def evaluate(estimator, X, y, groups, scheme: str, task: str, scoring: str,
         assert_no_group_overlap(splits, groups)
     return cross_val_score(estimator, X, y, cv=splits, scoring=scoring,
                            n_jobs=n_jobs, error_score="raise")
+
+def oof_predict(estimator, X, y, groups, scheme: str = "grouped",
+                task: str = "classification", n_splits: int = 5,
+                seed: int = 0, n_jobs: int = 1):
+    """
+    交叉验证并返回"折外预测"(out-of-fold)：每个样本的预测值都来自
+    "没见过该样本（该物体）"的模型。
+
+    返回 (pred, splits)：
+    pred   : (N,) 每个像素的预测类别
+    splits : 划分列表，可用来计算每一折的得分
+    """
+    splitter = make_splitter(scheme, task, n_splits, seed)
+    split_groups = groups if scheme == "grouped" else None
+    splits = list(splitter.split(X, y, split_groups))
+    if scheme == "grouped":
+        assert_no_group_overlap(splits, groups)
+    pred = cross_val_predict(estimator, X, y, cv=splits, n_jobs=n_jobs)
+    return pred, splits
+
+
+def object_level_accuracy(groups, y_true, y_pred) -> float:
+    """
+    物体级准确率：同一物体的所有像素预测"投票"，多数票作为该物体的预测，
+    再与物体真实类别比较。产线上最终是对物体做剔除/放行决策，这个指标更贴近业务。
+    """
+    df = pd.DataFrame({"g": groups, "t": y_true, "p": y_pred})
+    voted = df.groupby("g")["p"].agg(lambda s: s.mode().iloc[0])
+    truth = df.groupby("g")["t"].first()  # 同一物体的真实类别是常数
+    return float((voted == truth).mean())
