@@ -74,6 +74,7 @@ class SNV(BaseEstimator, TransformerMixin):
     """SNV 的 sklearn 封装。无状态：fit 什么也不学。"""
 
     def fit(self, X, y=None):
+        self.n_features_in_ = _as_2d_float(X).shape[1]
         return self
 
     def transform(self, X):
@@ -127,6 +128,7 @@ class SavitzkyGolay(BaseEstimator, TransformerMixin):
             raise ValueError("window_length 不能超过波段数")
 
     def fit(self, X, y=None):
+        self.n_features_in_ = _as_2d_float(X).shape[1]
         return self
 
     def transform(self, X):

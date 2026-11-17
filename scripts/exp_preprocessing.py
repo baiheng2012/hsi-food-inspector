@@ -63,8 +63,10 @@ def main() -> None:
             for scheme in ("random", "grouped"):
                 pipe = make_pipeline(prep_fn(), StandardScaler(), model_fn())
                 scores = evaluate(pipe, Xt, yt, gt, scheme, task, SCORING[task])
-                rows.append(dict(task=task, model=model_name, prep=prep_name,
-                                 scheme=scheme, mean=scores.mean(), std=scores.std()))
+                #rows.append(dict(task=task, model=model_name, prep=prep_name,
+                #                 scheme=scheme, mean=scores.mean(), std=scores.std()))
+                rows.append({"task": task, "model": model_name, "prep": prep_name,
+                             "scheme": scheme, "mean": scores.mean(), "std": scores.std()})            
                 print(f"{task:14s} {model_name:7s} {prep_name:8s} {scheme:8s} "
                       f"{scores.mean():.3f} ± {scores.std():.3f}")
 

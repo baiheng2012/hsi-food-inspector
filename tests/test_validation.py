@@ -1,9 +1,13 @@
 """验证工具的测试：重点钉住"分组划分无泄漏"这个契约。"""
 
 import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from hsi.data.simulator import SimConfig, generate_dataset
-from hsi.validation import build_pixel_table, make_splitter
+from hsi.preprocessing import SNV, SavitzkyGolay
+from hsi.validation import build_pixel_table, evaluate, make_splitter
 
 
 def _table():
@@ -28,7 +32,8 @@ def test_grouped_split_has_no_overlap():
 def test_random_split_does_leak():
     # 反面教材：随机划分确实会让同一物体同时出现在训练集和测试集
     X, y, _, g = _table()
-    train, test = next(make_splitter("random", "classification").split(X, y, g))
+#    train, test = next(make_splitter("random", "classification").split(X, y, g))
+    train, test = next(make_splitter("random", "classification").split(X, y))
     assert len(set(g[train]) & set(g[test])) > 0
 
 
@@ -36,3 +41,11 @@ def test_unknown_scheme_raises():
     import pytest
     with pytest.raises(ValueError):
         make_splitter("bogus", "classification")
+
+def test_nested_pipeline_with_stateless_steps_scores_finite():
+    # 守护：嵌套 Pipeline + 无状态变换器不能悄悄产生 NaN
+    X, y, _, g = _table()
+    inner = make_pipeline(SNV(), SavitzkyGolay(11, 2, deriv=1))
+    pipe = make_pipeline(inner, StandardScaler(), LogisticRegression(max_iter=500))
+    scores = evaluate(pipe, X, y, g, "grouped", "classification", "f1_macro", n_jobs=1)
+    assert np.isfinite(scores).all()

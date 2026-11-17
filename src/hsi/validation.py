@@ -85,9 +85,13 @@ def evaluate(estimator, X, y, groups, scheme: str, task: str, scoring: str,
     """
     对 estimator（通常是 Pipeline）做交叉验证，返回每一折的得分数组。
     scheme="grouped" 时会自动断言没有泄漏。
+    error_score="raise"：任何一折出错都直接抛异常，杜绝"静默变成 NaN"。
     """
     splitter = make_splitter(scheme, task, n_splits, seed)
-    splits = list(splitter.split(X, y, groups))  # 先生成所有划分，便于检查
+    # random 方案的划分器不使用 groups，传了会产生警告，所以只在 grouped 时传
+    split_groups = groups if scheme == "grouped" else None
+    splits = list(splitter.split(X, y, split_groups))
     if scheme == "grouped":
         assert_no_group_overlap(splits, groups)
-    return cross_val_score(estimator, X, y, cv=splits, scoring=scoring, n_jobs=n_jobs)
+    return cross_val_score(estimator, X, y, cv=splits, scoring=scoring,
+                           n_jobs=n_jobs, error_score="raise")
