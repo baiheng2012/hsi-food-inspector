@@ -1,0 +1,69 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: uv run python scripts/prepare_data.py
+    deps:
+    - path: scripts/prepare_data.py
+      hash: md5
+      md5: 6854864b17c1affe19d8c90a26ecf5f8
+      size: 798
+    - path: src/hsi/data/simulator.py
+      hash: md5
+      md5: d2bd89c16ea0176f1f7edbb68d1c2a9e
+      size: 11945
+    - path: src/hsi/evaluation.py
+      hash: md5
+      md5: 2d41d2b8f843cc2c15f070fa87957637
+      size: 3932
+    - path: src/hsi/validation.py
+      hash: md5
+      md5: bc87ef3fe343c07bf1254e3170c7034e
+      size: 6720
+    params:
+      params.yaml:
+        data:
+          config: subtle
+          n_scenes: 24
+          per_item: 60
+          seed: 0
+    outs:
+    - path: data/pixels.npz
+      hash: md5
+      md5: 30944c521d7f82683a5bb60e337c217c
+      size: 4008950
+  train:
+    cmd: uv run python scripts/train.py
+    deps:
+    - path: data/pixels.npz
+      hash: md5
+      md5: 30944c521d7f82683a5bb60e337c217c
+      size: 4008950
+    - path: scripts/train.py
+      hash: md5
+      md5: b25f154c121f29a15bf5d074f91aba78
+      size: 1212
+    - path: src/hsi
+      hash: md5
+      md5: 1bc834eb7226e369dde7ed040c53b74a.dir
+      size: 46463
+      nfiles: 15
+    params:
+      params.yaml:
+        cv:
+          n_splits: 5
+          seed: 0
+        models:
+          classifier:
+            name: plsda
+            prep: raw
+          regressor:
+            name: ridge
+            prep: raw
+          detector:
+            name: mahalanobis
+            prep: raw
+    outs:
+    - path: metrics/metrics.json
+      hash: md5
+      md5: dadecc357d5155dea52fab8356e5e4af
+      size: 228

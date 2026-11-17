@@ -6,11 +6,11 @@ __pycache__/
 .ruff_cache/
 
 # 数据与实验产物（大文件不进 git，后面用 DVC 管理）
-data/
+#data/
 mlruns/
 *.onnx
 *.pt
-
+mlflow.db
 # 编辑器 / 系统
 .vscode/
 .DS_Store

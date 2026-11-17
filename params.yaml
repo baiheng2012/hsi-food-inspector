@@ -1,0 +1,17 @@
+# 数据生成参数
+data:
+  config: subtle      # hard | subtle（subtle 含难检异物）
+  n_scenes: 24        # 场景数
+  per_item: 60        # 每个物体最多采样的像素数
+  seed: 0
+
+# 交叉验证参数
+cv:
+  n_splits: 5
+  seed: 0
+
+# 三个任务各自使用的模型和预处理
+models:
+  classifier: {name: plsda, prep: raw}
+  regressor: {name: ridge, prep: raw}
+  detector: {name: mahalanobis, prep: raw}

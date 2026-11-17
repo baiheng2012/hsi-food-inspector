@@ -19,6 +19,9 @@ dependencies = [
     "scikit-learn>=1.4",
     "matplotlib>=3.8",
     "torch>=2.14.1",
+    "mlflow>=3.18.0",
+    "dvc>=3.67.1",
+    "pyyaml>=6.0.3",
 ]
 
 # 开发依赖组：uv sync 默认安装；在 Docker/CI 里可用 --no-dev 跳过
@@ -34,7 +37,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
+markers = ["model: 模型回归测试（会训练模型，较慢）"]
 [tool.ruff]
 line-length = 100
 # 让 torch 从 CPU 专用源安装（体积小；Docker 和 GitHub Actions 里也直接可用）

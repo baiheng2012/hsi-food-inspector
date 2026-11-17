@@ -1,0 +1,25 @@
+stages:
+  prepare:
+    cmd: uv run python scripts/prepare_data.py
+    deps:
+      - scripts/prepare_data.py
+      - src/hsi/data/simulator.py
+      - src/hsi/evaluation.py
+      - src/hsi/validation.py
+    params:
+      - data            # params.yaml 里的整个 data 段
+    outs:
+      - data/pixels.npz # 由 DVC 管理，不进 git
+
+  train:
+    cmd: uv run python scripts/train.py
+    deps:
+      - scripts/train.py
+      - data/pixels.npz
+      - src/hsi          # 整个包；.dvcignore 已排除 __pycache__
+    params:
+      - cv
+      - models
+    metrics:
+      - metrics/metrics.json:
+          cache: false   # 指标文件小，直接放 git，方便 diff
