@@ -1,0 +1,38 @@
+# ============================================================
+# 项目配置文件：声明项目元信息、依赖、开发工具配置
+# uv sync 会据此创建 .venv，并以可编辑模式安装本项目（import hsi 即可用）
+# ============================================================
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hsi-food-inspector"
+version = "0.1.0"
+description = "Hyperspectral food inspection: classification, regression, anomaly detection with real-time inference."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pandas>=2.1",
+    "scikit-learn>=1.4",
+    "matplotlib>=3.8",
+]
+
+# 开发依赖组：uv sync 默认安装；在 Docker/CI 里可用 --no-dev 跳过
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+# src 布局：代码放在 src/ 下，避免测试时误导入未安装的本地目录
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

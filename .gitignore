@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# 数据与实验产物（大文件不进 git，后面用 DVC 管理）
+data/
+mlruns/
+*.onnx
+*.pt
+
+# 编辑器 / 系统
+.vscode/
+.DS_Store
+
+# 脚本生成的图
+#docs/figures/
