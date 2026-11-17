@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from sklearn.base import clone
 from sklearn.model_selection import (
     GroupKFold,
     KFold,
@@ -127,3 +128,31 @@ def object_level_accuracy(groups, y_true, y_pred) -> float:
     voted = df.groupby("g")["p"].agg(lambda s: s.mode().iloc[0])
     truth = df.groupby("g")["t"].first()  # 同一物体的真实类别是常数
     return float((voted == truth).mean())
+
+def oof_anomaly_scores(detector, X, y, groups, normal_classes=(1, 2),
+                       n_splits: int = 5, seed: int = 0):
+    """
+    异常检测的分组交叉验证。
+
+    每一折：只用"训练物体中的正常样本"fit，对"测试物体（含异物）"全部打分。
+    物体按 groups 分组，保证同一物体不会同时出现在训练和测试里。
+
+    返回 (N,) 每个样本的折外异常分数。
+    """
+    scores = np.zeros(len(X), dtype=np.float64)
+    is_normal = np.isin(y, normal_classes)
+    splits = list(StratifiedGroupKFold(n_splits, shuffle=True, random_state=seed)
+                  .split(X, y, groups))
+    assert_no_group_overlap(splits, groups)
+    for tr, te in splits:
+        tr_normal = tr[is_normal[tr]]          # 训练集里只保留正常样本
+        det = clone(detector).fit(X[tr_normal])
+        scores[te] = det.score_samples(X[te])
+    return scores
+
+def oof_regress(estimator, X, y, groups, n_splits: int = 5, seed: int = 0):
+    """回归的分组交叉验证，返回每个样本的折外预测值。"""
+    splits = list(GroupKFold(n_splits).split(X, y, groups))
+    assert_no_group_overlap(splits, groups)
+    pred = cross_val_predict(estimator, X, y, cv=splits, n_jobs=1)
+    return pred, splits

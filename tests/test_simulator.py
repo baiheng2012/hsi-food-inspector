@@ -10,6 +10,7 @@ from hsi.data.simulator import (
     BACKGROUND,
     FOREIGN,
     HARD_CONFIG,
+    SUBTLE_CONFIG,
     SimConfig,
     base_spectrum,
     generate_dataset,
@@ -86,3 +87,13 @@ def test_hard_mode_changes_spectra_but_not_geometry():
     assert np.array_equal(easy.label_map, hard.label_map)
     assert np.array_equal(easy.item_map, hard.item_map)
     assert not np.array_equal(easy.cube, hard.cube)
+
+def test_subtle_foreign_is_closer_to_food():
+    # 难检异物的平均光谱与新鲜食品的距离，应小于普通异物
+    def foreign_to_fresh_dist(cfg):
+        s = generate_scene(cfg, 0)
+        fg = s.cube[s.label_map == FOREIGN].mean(axis=0)
+        fr = s.cube[s.label_map == 1].mean(axis=0)
+        return np.linalg.norm(fg - fr)
+
+    assert foreign_to_fresh_dist(SUBTLE_CONFIG) < foreign_to_fresh_dist(HARD_CONFIG)

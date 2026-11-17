@@ -72,6 +72,8 @@ def main() -> None:
     ax = df.pivot(index="model", columns="prep", values="f1_mean").plot.bar(
         figsize=(9, 5), rot=0)
     ax.set_ylabel("pixel macro-F1 (grouped CV)")
+    ax.legend(title="prep", loc="center left", bbox_to_anchor=(1.0, 0.5))
+    ax.set_ylim(0.7, 1.0)    
     ax.set_title("Model x preprocessing on HARD simulated data")
     plt.tight_layout()
     plt.savefig("docs/figures/step3_model_comparison.png", dpi=130)
