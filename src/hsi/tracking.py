@@ -35,8 +35,9 @@ def _git_commit() -> str:
         return subprocess.check_output(
             ["git", "rev-parse", "--short", "HEAD"], text=True, stderr=subprocess.DEVNULL
         ).strip()
-    except Exception:
-        return "unknown"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "unknown"    
+    
 
 
 def log_run(params: dict, metrics: dict, artifacts: list[Path] | None = None,
