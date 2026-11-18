@@ -19,35 +19,35 @@ from torch import nn
 
 class SpectralCNN(nn.Module):
     """
-    结构：[Conv1d -> BatchNorm -> ReLU -> MaxPool] x 2 -> 自适应池化 -> 全连接 -> 类别 logits
+    结构：[Conv1d -> BatchNorm -> ReLU -> MaxPool] x 2 -> 展平 -> 全连接 -> 类别 logits
 
     输入  : (N, 1, B)  N 条光谱，1 个通道，B 个波段
     输出  : (N, n_classes) 未归一化的分数 (logits)
 
     设计选择：
     - 卷积核 7：一个吸收峰大约跨几个相邻波段，核太小看不到峰形。
-    - 不用全局平均池化：吸收峰的"位置"（波长）本身就是信息，全局平均会丢掉位置。
-      改用自适应池化到固定 8 段，再展平，保留粗略的位置信息，也不依赖具体波段数。
+    - 不用全局池化：吸收峰的"位置"本身就是信息，直接展平保留全部位置信息。
+    - 不用 AdaptiveAvgPool1d：它在输出长度不能整除输入长度时无法导出 ONNX。
+      代价：全连接层的输入维度依赖波段数 n_bands（两次 MaxPool 后为 B//2//2）。
     """
 
-    def __init__(self, n_classes: int, c1: int = 16, c2: int = 32,
+    def __init__(self, n_classes: int, n_bands: int, c1: int = 16, c2: int = 32,
                  kernel: int = 7, dropout: float = 0.3):
         super().__init__()
         pad = kernel // 2  # 保持卷积后长度不变
         self.features = nn.Sequential(
             nn.Conv1d(1, c1, kernel, padding=pad), nn.BatchNorm1d(c1), nn.ReLU(), nn.MaxPool1d(2),
             nn.Conv1d(c1, c2, kernel, padding=pad), nn.BatchNorm1d(c2), nn.ReLU(), nn.MaxPool1d(2),
-            nn.AdaptiveAvgPool1d(8),
         )
+        flat = c2 * (n_bands // 2 // 2)  # MaxPool 向下取整
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(c2 * 8, 64), nn.ReLU(), nn.Dropout(dropout),
+            nn.Linear(flat, 64), nn.ReLU(), nn.Dropout(dropout),
             nn.Linear(64, n_classes),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.classifier(self.features(x))
-
 
 class TorchSpectralClassifier(ClassifierMixin, BaseEstimator):
     """
@@ -87,7 +87,8 @@ class TorchSpectralClassifier(ClassifierMixin, BaseEstimator):
 
         torch.manual_seed(self.seed)
         rng = np.random.default_rng(self.seed)
-        self.model_ = SpectralCNN(len(self.classes_), dropout=self.dropout)
+        #self.model_ = SpectralCNN(len(self.classes_), dropout=self.dropout)
+        self.model_ = SpectralCNN(len(self.classes_), n_bands=X.shape[1], dropout=self.dropout)        
         opt = torch.optim.AdamW(self.model_.parameters(), lr=self.lr,
                                 weight_decay=self.weight_decay)
         sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=max(self.epochs, 1))
