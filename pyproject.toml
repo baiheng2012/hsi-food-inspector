@@ -24,11 +24,14 @@ dependencies = [
     "pyyaml>=6.0.3",
     "onnx>=1.23.2",
     "onnxruntime>=1.23.2",
+    "fastapi>=0.162.5",
+    "uvicorn[standard]>=0.54.0",
 ]
 
 # 开发依赖组：uv sync 默认安装；在 Docker/CI 里可用 --no-dev 跳过
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "pytest>=8.0",
     "ruff>=0.5",
 ]

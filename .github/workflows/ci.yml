@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: lint + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # 按 uv.lock 装完全相同的依赖；--frozen 表示锁文件与 pyproject 不一致就报错，不偷偷更新
+      - run: uv sync --frozen
+      - run: uv run ruff check src tests scripts
+      - run: uv run pytest -q -m "not model"
+
+  model-regression:
+    name: model regression gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      # 与基线 baselines/baseline_metrics.json 比较：指标退化超过容差就失败
+      - run: uv run pytest -m model -v
+
+  docker:
+    name: docker build + smoke test
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t hsi-food-inspector:ci .
+      - name: start container and wait for /health
+        run: |
+          docker run -d --name hsi -p 8000:8000 hsi-food-inspector:ci
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8000/health; then echo; exit 0; fi
+            sleep 2
+          done
+          docker logs hsi
+          exit 1

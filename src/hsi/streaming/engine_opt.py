@@ -17,6 +17,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 
 from hsi.streaming.engine import BG_THRESHOLD, FusedEngine, LineResult, _empty_result
@@ -47,6 +49,40 @@ class OptimizedEngine:
         self.loc = base.loc.astype(self.dtype)
         self.prec = np.ascontiguousarray(base.prec, dtype=self.dtype)
         self._buf: LineResult | None = None
+
+    @property
+    def n_bands(self) -> int:
+        """输入光谱的波段数。"""
+        return self.W.shape[0]
+
+    def save(self, path) -> None:
+        """
+        保存为 .npz。只存数组，不含 sklearn 对象，也不涉及 pickle：
+        加载端不依赖训练时的 sklearn 版本，也没有反序列化执行任意代码的风险。
+        """
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        np.savez(
+            path, W=self.W, bias=self.bias, classes=self.classes, loc=self.loc,
+            prec=self.prec, bg_threshold=np.float64(self.bg_threshold),
+            dtype=np.array(self.dtype.name),
+        )
+
+    @classmethod
+    def load(cls, path, reuse_buffers: bool = False) -> OptimizedEngine:
+        """从 .npz 恢复引擎。绕过 __init__（它需要 FusedEngine），直接填充属性。"""
+        d = np.load(path, allow_pickle=False)
+        obj = cls.__new__(cls)
+        obj.dtype = np.dtype(str(d["dtype"]))
+        obj.bg_threshold = float(d["bg_threshold"])
+        obj.reuse_buffers = reuse_buffers
+        obj.W = d["W"]
+        obj.k = obj.W.shape[1] - 2          # 最后两列是"水分"和"行均值"
+        obj.bias = d["bias"]
+        obj.classes = d["classes"]
+        obj.loc = d["loc"]
+        obj.prec = d["prec"]
+        obj._buf = None
+        return obj
 
     def _new_out(self, w: int) -> LineResult:
         if not self.reuse_buffers:
