@@ -1,0 +1,35 @@
+{
+  "budget_ms": 5.0,
+  "equivalence": {
+    "label_agree": 1.0,
+    "max_abs_moisture_diff": 9.2148511043888e-15,
+    "max_rel_anomaly_diff": 5.703229519010492e-14
+  },
+  "accuracy": {
+    "foreground_acc": 0.951128487648836,
+    "background_ok": 1.0
+  },
+  "latency": {
+    "sklearn": {
+      "lines": 1280,
+      "mean_ms": 0.8743601789062498,
+      "p50_ms": 1.123472,
+      "p95_ms": 1.6345021499999992,
+      "p99_ms": 2.037696630000001,
+      "max_ms": 3.687701,
+      "throughput_lines_per_s": 1143.6934390709728,
+      "over_budget_frac": 0.0
+    },
+    "fused_numpy": {
+      "lines": 1280,
+      "mean_ms": 0.07294036171875,
+      "p50_ms": 0.0750085,
+      "p95_ms": 0.14324094999999998,
+      "p99_ms": 0.2038562100000002,
+      "max_ms": 0.304833,
+      "throughput_lines_per_s": 13709.830557954865,
+      "over_budget_frac": 0.0
+    }
+  },
+  "speedup_p50": 14.977929168027623
+}
