@@ -2212,6 +2212,7 @@ dependencies = [
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
     { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "spectral" },
     { name = "torch", version = "2.14.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.11' and sys_platform == 'darwin'" },
     { name = "torch", version = "2.14.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version < '3.11' and sys_platform != 'darwin'" },
     { name = "torch", version = "2.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "python_full_version >= '3.11' and sys_platform == 'darwin'" },
@@ -2239,6 +2240,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "scikit-learn", specifier = ">=1.4" },
     { name = "scipy", specifier = ">=1.11" },
+    { name = "spectral", specifier = ">=0.26" },
     { name = "torch", specifier = ">=2.14.1", index = "https://download.pytorch.org/whl/cpu" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.54.0" },
 ]
@@ -6188,6 +6190,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/1f/ea/49c993d6dfdd7338c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c1/d4/59e74daffcb57a07668852eeeb6035af9f32cbfd7a1d2511f17d2fe6a738/smmap-5.0.3-py3-none-any.whl", hash = "sha256:c106e05d5a61449cf6ba9a1e650227ecfb141590d2a98412103ff35d89fc7b2f", size = 24390, upload-time = "2026-03-09T03:43:24.361Z" },
 ]
+
+[[package]]
+name = "spectral"
+version = "0.26"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.11.*'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/26/a3/df6e5f26c4f4fa18c11cccc17e48bfa7dee59934f28f0b99135fed334260/spectral-0.26.tar.gz", hash = "sha256:e1bb3e64085a3dc96c513fddbd044b60295a2e311c819447564748de6e68948e", size = 260078, upload-time = "2026-11-01T17:46:53.144Z" }
 
 [[package]]
 name = "sqlalchemy"
